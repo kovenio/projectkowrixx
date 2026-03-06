@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЭКО-СОРТИРОВКА</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<style>
+body{
+margin:0;
+font-family:'Segoe UI', Roboto, system-ui;
+background:linear-gradient(135deg,#1b3b4f,#2a5f7a);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+.btn {
+    background-color: rgb(248, 248, 217);
+    width: 95px;
+    height: 35px;
+    border: brown solid 1px;
+    border-radius: 20px;
+    margin-right: 50px;
+    text-align: center;
+    text-decoration: none;
+    color: black;
+    padding-top: 4px;
+}
+
+.wrapper{
+width:95%;
+max-width:1100px;
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(10px);
+border-radius:40px;
+padding:25px;
+color:white;
+text-align:center;
+}
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:30px;
+font-weight:bold;
+cursor:pointer;
+margin:5px;
+}
+
+.green{background:#3b8c4a;color:white;}
+.orange{background:#f4a261;color:white;}
+
+.level-grid{
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:10px;
+margin:20px 0;
+}
+
+.level-btn{
+height:70px;
+border-radius:50%;
+background:#fef9e8;
+color:#1b3b4f;
+font-weight:bold;
+cursor:pointer;
+}
+
+.bins, .items{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:15px;
+margin:15px 0;
+}
+
+.bin{
+background:#fef9e8;
+color:#1b3b4f;
+padding:15px;
+border-radius:25px;
+width:120px;
+}
+
+.item{
+background:#fef9e8;
+color:#1b3b4f;
+width:100px;
+height:100px;
+border-radius:50%;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:10px;
+text-align:center;
+cursor:grab;
+}
+
+.status{
+margin:10px 0;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+<a href="index.html" class="btn">Назад</a>
+<div class="wrapper">
+
+<div id="menu">
+<h2><i class="fa-solid fa-recycle"></i> ЭКО-СОРТИРОВКА</h2>
+<p>20 уровней</p>
+<div class="level-grid" id="levelGrid"></div>
+<button class="green" onclick="startLevel()">СТАРТ</button>
+</div>
+
+<div id="game" style="display:none;">
+<h3 id="levelTitle"></h3>
+<div class="status" id="status"></div>
+<div class="status" id="timer"></div>
+
+<div class="bins" id="bins"></div>
+<div class="items" id="items"></div>
+
+<p id="message"></p>
+
+<button class="orange" onclick="restartLevel()">Заново</button>
+<button class="green" onclick="goMenu()">Меню</button>
+</div>
+
+</div>
+
+<script>
+
+// ВСЕ ТИПЫ КОРЗИН
+const BIN_TYPES = {
+organic:"🍌 ORGANIC",
+plastic:"🧴 PLASTIC",
+paper:"📦 PAPER",
+glass:"🥛 GLASS",
+metal:"🔩 METAL",
+electronics:"⚡ ELECTRONICS",
+textile:"👕 TEXTILE",
+hazardous:"☠️ HAZARDOUS"
+};
+
+// 20 УРОВНЕЙ
+const levels = [
+{bins:["organic","plastic","paper"],time:30,
+items:[
+{type:"organic",name:"🍌 Банан"},
+{type:"plastic",name:"🧴 Бутылка пластик"},
+{type:"paper",name:"📰 Газета"}]},
+
+{bins:["organic","plastic","paper","glass"],time:35,
+items:[
+{type:"organic",name:"🍎 Огрызок яблока"},
+{type:"plastic",name:"🥤 Пакет полиэтиленовый"},
+{type:"paper",name:"📦 Картонная коробка"},
+{type:"glass",name:"🥛 Стеклянная бутылка"}]},
+
+{bins:["organic","plastic","paper","glass","metal"],time:40,
+items:[
+{type:"organic",name:"🥕 Очистки овощей"},
+{type:"plastic",name:"🧴 Флакон от шампуня"},
+{type:"paper",name:"📰 Журнал"},
+{type:"glass",name:"🍷 Стеклянная банка"},
+{type:"metal",name:"🥫 Консервная банка"}]},
+
+{bins:["organic","plastic","paper","glass","metal","electronics"],time:45,
+items:[
+{type:"organic",name:"🍌 Банан"},
+{type:"plastic",name:"🥤 Обёртка"},
+{type:"paper",name:"📦 Коробка"},
+{type:"glass",name:"🥛 Банка"},
+{type:"metal",name:"🔩 Крышка"},
+{type:"electronics",name:"🔋 Батарейка"}]},
+
+{bins:["organic","plastic","paper","glass","metal","electronics","textile"],time:50,
+items:[
+{type:"organic",name:"🍎 Огрызок"},
+{type:"plastic",name:"🧴 Бутылка воды"},
+{type:"paper",name:"📰 Газета"},
+{type:"glass",name:"🍷 Стекло"},
+{type:"metal",name:"🥫 Банка"},
+{type:"electronics",name:"📱 Плата"},
+{type:"textile",name:"👕 Футболка"}]},
+
+// Уровни 6–19 (разные комбинации)
+
+{bins:["organic","plastic","glass"],time:35,
+items:[
+{type:"organic",name:"🥕 Очистки"},
+{type:"plastic",name:"🥤 Стакан"},
+{type:"glass",name:"🍷 Бутылка"}]},
+
+{bins:["plastic","metal","electronics"],time:45,
+items:[
+{type:"plastic",name:"🧴 Пластик"},
+{type:"metal",name:"🔩 Болт"},
+{type:"electronics",name:"🔋 Батарейка"}]},
+{bins:["paper","glass","textile"],time:40,
+items:[
+{type:"paper",name:"📰 Газета"},
+{type:"glass",name:"🥛 Стекло"},
+{type:"textile",name:"👕 Рубашка"}]},
+
+{bins:["hazardous","electronics","metal"],time:55,
+items:[
+{type:"hazardous",name:"☠️ Ацетон"},
+{type:"electronics",name:"📱 Микросхема"},
+{type:"metal",name:"🔩 Шуруп"}]},
+
+{bins:["organic","plastic","paper","glass","metal","electronics","textile","hazardous"],time:60,
+items:[
+{type:"organic",name:"🍌 Банан"},
+{type:"plastic",name:"🧴 Гель"},
+{type:"paper",name:"📰 Газета"},
+{type:"glass",name:"🥛 Стекло"},
+{type:"metal",name:"🥫 Банка"},
+{type:"electronics",name:"🔋 Батарейка"},
+{type:"textile",name:"👕 Футболка"},
+{type:"hazardous",name:"☠️ Растворитель"}]},
+
+// 10 дополнительных уровней (усложнение)
+
+{bins:["organic","paper","metal"],time:40,
+items:[
+{type:"organic",name:"🍎 Огрызок"},
+{type:"paper",name:"📦 Картон"},
+{type:"metal",name:"🔩 Болт"}]},
+
+{bins:["plastic","glass","textile"],time:45,
+items:[
+{type:"plastic",name:"🥤 Стакан"},
+{type:"glass",name:"🍷 Банка"},
+{type:"textile",name:"👕 Носки"}]},
+
+{bins:["electronics","hazardous"],time:50,
+items:[
+{type:"electronics",name:"📱 Плата"},
+{type:"hazardous",name:"☠️ Краска"}]},
+
+{bins:["organic","plastic","paper","glass"],time:45,
+items:[
+{type:"organic",name:"🥕 Очистки"},
+{type:"plastic",name:"🧴 Бутылка"},
+{type:"paper",name:"📰 Журнал"},
+{type:"glass",name:"🥛 Стекло"}]},
+
+{bins:["metal","electronics","hazardous"],time:55,
+items:[
+{type:"metal",name:"🔩 Шуруп"},
+{type:"electronics",name:"🔋 Аккумулятор"},
+{type:"hazardous",name:"☠️ Лак"}]},
+
+{bins:["organic","textile"],time:35,
+items:[
+{type:"organic",name:"🍌 Банан"},
+{type:"textile",name:"👕 Футболка"}]},
+
+{bins:["plastic","paper","glass"],time:40,
+items:[
+{type:"plastic",name:"🧴 Бутылка"},
+{type:"paper",name:"📦 Коробка"},
+{type:"glass",name:"🍷 Бутылка"}]},
+
+{bins:["organic","metal","electronics"],time:50,
+items:[
+{type:"organic",name:"🍎 Огрызок"},
+{type:"metal",name:"🔩 Гайка"},
+{type:"electronics",name:"📱 Телефон"}]},
+
+{bins:["textile","hazardous"],time:45,
+items:[
+{type:"textile",name:"👕 Рубашка"},
+{type:"hazardous",name:"☠️ Батарейка"}]},
+
+{bins:["organic","plastic","paper","glass","metal","electronics","textile","hazardous"],time:70,
+items:[
+{type:"organic",name:"🍌 Банан"},
+{type:"plastic",name:"🧴 Пластик"},
+{type:"paper",name:"📰 Газета"},
+{type:"glass",name:"🍷 Стекло"},
+{type:"metal",name:"🔩 Болт"},
+{type:"electronics",name:"📱 Плата"},
+{type:"textile",name:"👕 Куртка"},
+{type:"hazardous",name:"☠️ Растворитель"}]}
+];
+
+// ПЕРЕМЕННЫЕ
+let currentLevel=0;
+let selectedLevel=0;
+let score=0;
+let timerInterval;
+let timeLeft;
+
+// СОЗДАНИЕ КНОПОК
+const levelGrid=document.getElementById("levelGrid");
+levels.forEach(function(lvl,index){
+const btn=document.createElement("button");
+btn.className="level-btn";
+btn.innerText=index+1;
+btn.onclick=function(){selectedLevel=index;};
+levelGrid.appendChild(btn);
+});
+
+function startLevel(){
+currentLevel=selectedLevel;
+document.getElementById("menu").style.display="none";
+document.getElementById("game").style.display="block";
+loadLevel();
+}
+
+function loadLevel(){
+const level=levels[currentLevel];
+score=0;
+timeLeft=level.time;
+
+document.getElementById("levelTitle").innerText="Уровень "+(currentLevel+1);
+document.getElementById("status").innerText="0 / "+level.items.length;
+document.getElementById("message").innerText="";
+document.getElementById("timer").innerText="Время: "+timeLeft;
+
+const binsDiv=document.getElementById("bins");
+const itemsDiv=document.getElementById("items");
+binsDiv.innerHTML="";
+itemsDiv.innerHTML="";
+
+level.bins.forEach(function(type){
+const bin=document.createElement("div");
+bin.className="bin";
+bin.dataset.type=type;
+bin.innerText=BIN_TYPES[type];
+bin.addEventListener("dragover",function(e){e.preventDefault();});
+bin.addEventListener("drop",dropItem);
+binsDiv.appendChild(bin);
+});
+level.items.forEach(function(item,index){
+const div=document.createElement("div");
+div.className="item";
+div.draggable=true;
+div.dataset.type=item.type;
+div.dataset.id=index;
+div.innerText=item.name;
+div.addEventListener("dragstart",function(e){
+e.dataTransfer.setData("type",item.type);
+e.dataTransfer.setData("id",index);
+});
+itemsDiv.appendChild(div);
+});
+
+startTimer();
+}
+
+function dropItem(e){
+e.preventDefault();
+const type=e.dataTransfer.getData("type");
+const id=e.dataTransfer.getData("id");
+const element=document.querySelector(".item[data-id='"+id+"']");
+
+if(type===e.currentTarget.dataset.type){
+element.style.display="none";
+score++;
+document.getElementById("status").innerText=score+" / "+levels[currentLevel].items.length;
+if(score===levels[currentLevel].items.length){
+clearInterval(timerInterval);
+document.getElementById("message").innerText="🎉 УРОВЕНЬ ПРОЙДЕН!";
+}
+}else{
+document.getElementById("message").innerText="❌ Неверно!";
+}
+}
+
+function startTimer(){
+clearInterval(timerInterval);
+timerInterval=setInterval(function(){
+timeLeft--;
+document.getElementById("timer").innerText="Время: "+timeLeft;
+if(timeLeft<=0){
+clearInterval(timerInterval);
+document.getElementById("message").innerText="⏰ ВРЕМЯ ВЫШЛО!";
+}
+},1000);
+}
+
+function restartLevel(){
+loadLevel();
+}
+
+function goMenu(){
+clearInterval(timerInterval);
+document.getElementById("game").style.display="none";
+document.getElementById("menu").style.display="block";
+}
+</script>
+</body>
+</html>

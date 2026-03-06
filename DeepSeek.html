@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♻️ ЭКО-СОРТИРОВКА · 20 уровней</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: linear-gradient(145deg, #1b3b4f 0%, #2a5f7a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.4s;
+        }
+       .btn {
+            background-color: rgb(248, 248, 217);
+            width: 95px;
+            height: 35px;
+            border: brown solid 1px;
+            border-radius: 20px;
+            margin-right: 50px;
+            text-align: center;
+            text-decoration: none;
+            color: black;
+            padding-top: 4px;
+        }
+
+        /* Стартовый экран */
+        .splash-screen {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            border-radius: 64px;
+            padding: 30px 25px;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255,255,255,0.4);
+            width: 1000px;
+            max-width: 96%;
+            text-align: center;
+            border: 2px solid #e3ffc7;
+            transition: 0.3s;
+        }
+
+        .splash-content {
+            background: #f6ffe6;
+            border-radius: 48px;
+            padding: 40px 20px;
+            box-shadow: inset 0 4px 10px #f5ffd0, 0 15px 0 #5f8045;
+            border: 3px solid #528a3b;
+        }
+
+        .splash-icon {
+            font-size: 7rem;
+            color: #3f923f;
+            filter: drop-shadow(6px 10px 0 #316631);
+            margin-bottom: 10px;
+        }
+
+        .splash-title {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #1f4f2b;
+            text-shadow: 4px 4px 0 #b0db7c;
+            letter-spacing: -1px;
+        }
+
+        .splash-sub {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #2d5a2d;
+            background: #e0ffc7;
+            display: inline-block;
+            padding: 8px 40px;
+            border-radius: 60px;
+            margin: 15px 0 20px;
+            border: 3px solid #528a3b;
+        }
+
+        /* Сетка уровней */
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px 15px;
+            margin: 20px 0;
+            background: rgba(210, 235, 180, 0.4);
+            border-radius: 50px;
+            scrollbar-width: thin;
+        }
+        .level-btn {
+            background: #fedb9f;
+            border: 4px solid #b47d44;
+            color: #36280e;
+            font-size: 1.8rem;
+            font-weight: bold;
+            height: 90px;
+            border-radius: 50px;
+            box-shadow: 0 7px 0 #9e692e, 0 5px 12px black;
+            cursor: pointer;
+            transition: 0.05s linear;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+        .level-btn small {
+            font-size: 0.9rem;
+            background: #417c2c;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 30px;
+            margin-top: 4px;
+        }
+        .level-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #7b4f25;
+        }
+        .level-btn.selected {
+            background: #ffb851;
+            border-color: #e09c3a;
+            box-shadow: 0 7px 0 #b16f2a;
+            transform: scale(1.02);
+        }
+
+        .btn-start {
+            background: #6bb86b;
+            border: none;
+            font-size: 2.8rem;
+            font-weight: bold;
+            color: #163d16;
+            padding: 15px 60px;
+            border-radius: 80px;
+            box-shadow: 0 15px 0 #2f6d2f, 0 8px 25px black;
+            cursor: pointer;
+            transition: 0.07s;
+            border: 3px solid #c6ffa0;
+            margin-top: 10px;
+        }
+        .btn-start:active {
+            transform: translateY(8px);
+            box-shadow: 0 6px 0 #1f531f;
+        }
+
+        /* Игровой экран */
+        .game-wrapper {
+            display: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 30px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.2);
+            width: 1200px;
+            max-width: 100%;
+        }
+
+        .game-card {
+            background: #fef9e8;
+            border-radius: 36px;
+            padding: 30px 25px;
+            box-shadow: inset 0 2px 8px rgba(255,255,255,0.8), 0 10px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,240,0.7);
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #2e3d2e;
+            text-shadow: 2px 2px 0 #c9df8a;
+            margin: 0 0 10px 0;
+        }
+        h1 i {
+            font-size: 2.8rem;
+            color: #3b8c4a;
+        }
+
+        .stats-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #d4e6c3;
+            padding: 15px 25px;
+            border-radius: 60px;
+            margin-bottom: 35px;
+            box-shadow: inset 0 2px 6px #f5ffdc, 0 6px 0 #6f8f5f;
+            border: 2px solid #5a7a4a;
+        }
+
+        .score-box, .timer-box, .level-badge {
+            background: white;
+            border-radius: 40px;
+            padding: 10px 25px;
+            font-weight: 700;
+            font-size: 2rem;
+            color: #1f4f2b;
+            box-shadow: 0 4px 0 #3b5e2b;
+            border: 2px solid #3b5e2b;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .level-badge i {
+            font-size: 2rem;
+            color: #b88633;
+        }
+        .timer-box.warning {
+            background: #ffcfcf;
+            color: #a12222;
+            border-color: #a12222;
+        }
+
+        .bins-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0 50px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .bin {
+            flex: 1 1 150px;
+            background: #ece3d0;
+            border-radius: 40px 40px 30px 30px;
+            padding: 20px 5px 15px;
+            text-align: center;
+            box-shadow: 0 12px 0 #8b6f4c, 0 8px 15px rgba(0,0,0,0.3);
+            border: 3px solid #b48b5a;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            cursor: grab;
+        }
+        .bin:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #6b4f32;
+        }
+        .bin-icon {
+            font-size: 4.5rem;
+            line-height: 1;
+            filter: drop-shadow(4px 6px 0 rgba(0,0,0,0.2));
+        }
+        .bin-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: #faf0d7;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 40px;
+            margin-top: 8px;
+            border: 2px solid #a58357;
+        }
+        /* Цвета по типам */
+        .bin[data-type="organic"] .bin-icon { color: #2b6c2b; }
+        .bin[data-type="plastic"] .bin-icon { color: #c97d2d; }
+        .bin[data-type="paper"] .bin-icon { color: #28628c; }
+        .bin[data-type="glass"] .bin-icon { color: #527a5a; }
+        .bin[data-type="metal"] .bin-icon { color: #7f7f7f; }
+        .bin[data-type="electronics"] .bin-icon { color: #a1529c; }
+        .bin[data-type="textile"] .bin-icon { color: #c0566b; }
+        .bin[data-type="hazardous"] .bin-icon { color: #b33f2f; }
+
+        .items-area {
+            background: #b8d4a5;
+            border-radius: 80px;
+            padding: 30px 20px;
+            margin: 20px 0 30px;
+            border: 4px solid #6d8f5a;
+            box-shadow: inset 0 0 0 5px #e0f0d0, 0 8px 0 #4f6d3f;
+        }
+
+        .items-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1d3e1d;
+            margin-left: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .items-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .item {
+            width: 130px;
+            height: 130px;
+            background: #fcf9f0;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 0 #b38b60, 0 8px 20px rgba(0,0,0,0.3);
+            border: 4px solid #ffe6b3;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #402d1b;
+            transition: all 0.2s;
+            cursor: grab;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .item i {
+            font-size: 3.5rem;
+            margin-bottom: 5px;
+        }
+        .item:active {
+            transform: scale(0.96);
+            box-shadow: 0 6px 0 #9b764b;
+        }
+        .item.vanish {
+            animation: vanishAnim 0.3s forwards;
+        }
+        .item.hidden {
+            display: none;
+        }
+        @keyframes vanishAnim {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        .message-area {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2f4d2f;
+            min-height: 4rem;
+            margin: 20px 0 10px;
+        }
+
+        .btn-restart {
+            background: #ffb347;
+            border: none;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #38270e;
+            padding: 12px 35px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 9px 0 #b16f2a, 0 5px 15px rgba(0,0,0,0.3);
+            transition: 0.07s;
+            border: 2px solid #ffda99;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .btn-restart:active {
+            transform: translateY(5px);
+            box-shadow: 0 4px 0 #a15e20;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .back-to-menu {
+            background: #95bf8f;
+            box-shadow: 0 9px 0 #557c4a;
+            border-color: #c6f0b5;
+            color: #1c401c;
+        }
+    </style>
+</head>
+<body>
+    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <a href="index.html" class="btn">Назад</a>
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-icon"><i class="fas fa-recycle"></i></div>
+            <div class="splash-title">ЭКО-СОРТИРОВКА</div>
+            <div class="splash-sub"><i class="fas fa-seedling"></i> 20 уровней <i class="fas fa-seedling"></i></div>
+
+            <!-- Сетка 20 уровней -->
+            <div class="level-grid" id="levelGrid"></div>
+
+            <button class="btn-start" id="startGameBtn"><i class="fas fa-play"></i> СТАРТ</button>
+            <p style="margin-top: 20px; color: #264d26; font-size: 1.5rem;">выбери уровень</p>
+        </div>
+    </div>
+
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div class="game-wrapper" id="gameWrapper">
+        <div class="game-card">
+            <h1><i class="fas fa-recycle"></i> ЭКО-СОРТИРОВКА <span id="levelNameDisplay">ур.1</span></h1>
+            <div class="stats-panel">
+                <div class="level-badge"><i class="fas fa-layer-group"></i> <span id="currentLevelSpan">1</span>/20</div>
+                <div class="score-box"><i class="fas fa-star"></i><span id="scoreDisplay">0</span> / <span id="totalItems">0</span></div>
+                <div class="timer-box" id="timerBox"><i class="fas fa-hourglass-half"></i><span id="timerDisplay">30</span>с</div>
+            </div>
+
+            <div class="bins-container" id="binsContainer"></div>
+
+            <div class="items-area">
+                <div class="items-title"><i class="fas fa-arrow-down"></i> ПЕРЕТАЩИ ОТХОДЫ <i class="fas fa-arrow-down"></i></div>
+                <div class="items-grid" id="itemsGrid"></div>
+            </div>
+
+            <div class="message-area" id="gameMessage">♻️ Сортируй!</div>
+            <div class="footer">
+                <button class="btn-restart" id="restartLevelBtn"><i class="fas fa-redo-alt"></i> Уровень заново</button>
+                <button class="btn-restart back-to-menu" id="backToMenuBtn"><i class="fas fa-bars"></i> Меню уровней</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // -------------------------------------------------------------
+            // 20 УРОВНЕЙ (ПОЛНОСТЬЮ НА РУССКОМ)
+            // -------------------------------------------------------------
+            const levelData = {
+                1:  { bins: ['organic','plastic','paper'], time: 30, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍌 Банан', id:'a1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Бутылка пластик', id:'a2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'a3' } ] },
+                2:  { bins: ['organic','plastic','paper','glass'], time: 35, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🍎 Огрызок яблока', id:'b1' },
+                        { type:'plastic', icon:'fa-cube', name:'🥤 Пакет полиэтиленовый', id:'b2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Картонная коробка', id:'b3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Стеклянная бутылка', id:'b4' } ] },
+                3:  { bins: ['organic','plastic','paper','glass','metal'], time: 40, items: [
+                        { type:'organic', icon:'fa-leaf', name:'🥕 Очистки овощей', id:'c1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Флакон от шампуня', id:'c2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Журнал', id:'c3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стеклянная банка', id:'c4' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консервная банка', id:'c5' } ] },
+                4:  { bins: ['organic','plastic','paper','glass','metal','electronics'], time: 45, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍌 Банан', id:'d1' },
+                        { type:'plastic', icon:'fa-cube', name:'🧴 Пластиковый пакет', id:'d2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Коробка от обуви', id:'d3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Банка из-под огурцов', id:'d4' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Металлическая крышка', id:'d5' },
+                        { type:'electronics', icon:'fa-battery-full', name:'🔋 Батарейка пальчиковая', id:'d6' } ] },
+                5:  { bins: ['organic','plastic','paper','glass','metal','electronics','textile'], time: 50, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🍎 Огрызок', id:'e1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🥤 Бутылка от воды', id:'e2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'e3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стеклянная тара', id:'e4' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Алюминиевая банка', id:'e5' },
+                        { type:'electronics', icon:'fa-microchip', name:'📱 Плата от телефона', id:'e6' },
+                        { type:'textile', icon:'fa-tshirt', name:'👕 Хлопковая футболка', id:'e7' } ] },
+                6:  { bins: ['organic','plastic','paper','glass','metal'], time: 42, items: [
+                        { type:'organic', icon:'fa-leaf', name:'🍌 Банан', id:'f1' }, 
+                        { type:'plastic', icon:'fa-cube', name:'🧴 Пакет майка', id:'f2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Гофрокартон', id:'f3' }, 
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Стакан', id:'f4' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Жестяная крышка', id:'f5' } ] },
+                7:  { bins: ['organic','plastic','paper','electronics'], time: 38, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🥕 Очистки картофеля', id:'g1' }, 
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Бутылка из-под молока', id:'g2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'g3' }, 
+                        { type:'electronics', icon:'fa-battery-full', name:'🔋 Аккумулятор', id:'g4' } ] },
+                8:  { bins: ['organic','paper','glass','metal','textile'], time: 44, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍎 Огрызок', id:'h1' }, 
+                        { type:'paper', icon:'fa-box-open', name:'📦 Коробка от пиццы', id:'h2' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Бутылка винная', id:'h3' }, 
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консерва рыбная', id:'h4' },
+                        { type:'textile', icon:'fa-tshirt', name:'🧦 Носки х/б', id:'h5' } ] },
+                9:  { bins: ['plastic','glass','metal','electronics','hazardous'], time: 55, items: [
+                        { type:'plastic', icon:'fa-cube', name:'🥤 Пластиковый стакан', id:'i1' }, 
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Банка для засолки', id:'i2' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Металлический винт', id:'i3' }, 
+                        { type:'electronics', icon:'fa-microchip', name:'📱 Микросхема', id:'i4' },
+                        { type:'hazardous', icon:'fa-skull-crossbones', name:'🧪 Ацетон', id:'i5' } ] },
+                10: { bins: ['organic','plastic','paper','glass','metal','electronics','textile','hazardous'], time: 60, items: [
+                        { type:'organic', icon:'fa-leaf', name:'🍌 Банан', id:'j1' }, 
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Флакон от геля', id:'j2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'j3' }, 
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стекло', id:'j4' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консервная банка', id:'j5' }, 
+                        { type:'electronics', icon:'fa-battery-full', name:'🔋 Батарейка', id:'j6' },
+                        { type:'textile', icon:'fa-tshirt', name:'👕 Футболка', id:'j7' }, 
+                        { type:'hazardous', icon:'fa-flask', name:'🧪 Растворитель', id:'j8' } ] },
+                11: { bins: ['organic','plastic','paper'], time: 30, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍌 Банан', id:'k1' },
+                        { type:'plastic', icon:'fa-cube', name:'🧴 Пакет', id:'k2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'k3' }] },
+                12: { bins: ['organic','plastic','paper','glass'], time: 35, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🍎 Огрызок', id:'l1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Бутылка', id:'l2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Картон', id:'l3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Стекло', id:'l4' }] },
+                13: { bins: ['organic','plastic','paper','glass','metal'], time: 42, items: [
+                        { type:'organic', icon:'fa-leaf', name:'🥕 Очистки', id:'m1' },
+                        { type:'plastic', icon:'fa-cube', name:'🥤 Пакет', id:'m2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'m3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Бутылка', id:'m4' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Крышка', id:'m5' }] },
+                14: { bins: ['organic','plastic','paper','glass','metal','electronics'], time: 48, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍌 Банан', id:'n1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Флакон', id:'n2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Коробка', id:'n3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Банка', id:'n4' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консерва', id:'n5' },
+                        { type:'electronics', icon:'fa-microchip', name:'📱 Плата', id:'n6' }] },
+                15: { bins: ['organic','plastic','paper','glass','metal','electronics','textile'], time: 52, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🍎 Огрызок', id:'o1' },
+                        { type:'plastic', icon:'fa-cube', name:'🧴 Пакет', id:'o2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'o3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стекло', id:'o4' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Крышка', id:'o5' },
+                        { type:'electronics', icon:'fa-battery-full', name:'🔋 Батарейка', id:'o6' },
+                        { type:'textile', icon:'fa-tshirt', name:'👕 Футболка', id:'o7' }] },
+                16: { bins: ['plastic','glass','metal','hazardous'], time: 40, items: [
+                        { type:'plastic', icon:'fa-cube', name:'🥤 Пакет', id:'p1' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Банка', id:'p2' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консерва', id:'p3' },
+                        { type:'hazardous', icon:'fa-flask', name:'🧪 Краска масляная', id:'p4' }] },
+                17: { bins: ['organic','paper','textile'], time: 30, items: [
+                        { type:'organic', icon:'fa-leaf', name:'🍌 Банан', id:'q1' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'q2' },
+                        { type:'textile', icon:'fa-tshirt', name:'🧦 Носки', id:'q3' }] },
+                18: { bins: ['glass','metal','electronics','hazardous'], time: 45, items: [
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стекло', id:'r1' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Крышка', id:'r2' },
+                        { type:'electronics', icon:'fa-microchip', name:'📱 Плата', id:'r3' },
+                        { type:'hazardous', icon:'fa-skull-crossbones', name:'🧪 Ацетон', id:'r4' }] },
+                19: { bins: ['organic','plastic','paper','glass','metal','textile'], time: 50, items: [
+                        { type:'organic', icon:'fa-apple-alt', name:'🍎 Огрызок', id:'s1' },
+                        { type:'plastic', icon:'fa-prescription-bottle', name:'🧴 Бутылка', id:'s2' },
+                        { type:'paper', icon:'fa-box-open', name:'📦 Картон', id:'s3' },
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🥛 Банка', id:'s4' },
+                        { type:'metal', icon:'fa-gear', name:'🥫 Консерва', id:'s5' },
+                        { type:'textile', icon:'fa-tshirt', name:'👕 Футболка', id:'s6' }] },
+                20: { bins: ['organic','plastic','paper','glass','metal','electronics','textile','hazardous'], time: 70, items: [
+                        { type:'organic', icon:'fa-carrot', name:'🍌 Банан', id:'t1' }, 
+                        { type:'plastic', icon:'fa-cube', name:'🧴 Пакет', id:'t2' },
+                        { type:'paper', icon:'fa-scroll', name:'📰 Газета', id:'t3' }, 
+                        { type:'glass', icon:'fa-wine-glass-alt', name:'🍷 Стекло', id:'t4' },
+                        { type:'metal', icon:'fa-gear', name:'🔩 Крышка', id:'t5' }, 
+                        { type:'electronics', icon:'fa-battery-full', name:'🔋 Батарейка', id:'t6' },
+                        { type:'textile', icon:'fa-tshirt', name:'🧦 Носки', id:'t7' }, 
+                        { type:'hazardous', icon:'fa-flask', name:'🧪 Растворитель', id:'t8' }] },
+            };
+
+            // Генерация кнопок уровней 1-20
+            const levelGrid = document.getElementById('levelGrid');
+            for (let i = 1; i <= 20; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'level-btn' + (i === 1 ? ' selected' : '');
+                btn.dataset.level = i;
+                btn.id = `levelBtn${i}`;
+                btn.innerHTML = `${i} <small>${levelData[i].items.length} шт</small>`;
+                btn.addEventListener('click', function(e) {
+                    document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedLevel = i;
+                });
+                levelGrid.appendChild(btn);
+            }
+
+            // DOM элементы игры
+            const splash = document.getElementById('splashScreen');
+            const wrapper = document.getElementById('gameWrapper');
+            const startBtn = document.getElementById('startGameBtn');
+            const currentLevelSpan = document.getElementById('currentLevelSpan');
+            const levelNameDisplay = document.getElementById('levelNameDisplay');
+            const binsContainer = document.getElementById('binsContainer');
+            const itemsGrid = document.getElementById('itemsGrid');
+            const scoreSpan = document.getElementById('scoreDisplay');
+            const totalSpan = document.getElementById('totalItems');
+            const timerSpan = document.getElementById('timerDisplay');
+            const timerBox = document.getElementById('timerBox');
+            const gameMessage = document.getElementById('gameMessage');
+            const restartBtn = document.getElementById('restartLevelBtn');
+            const backToMenu = document.getElementById('backToMenuBtn');
+
+            let currentLevel = 1;
+            let score = 0, timeLeft = 30, totalItemsCount = 0;
+            let gameActive = false, gameFinished = false;
+            let timerInterval = null;
+            let selectedLevel = 1;   // выбранный в меню
+
+            function getBinIcon(type) {
+                const icons = { 
+                    organic:'🍌', 
+                    plastic:'🧴', 
+                    paper:'📦', 
+                    glass:'🥛', 
+                    metal:'🔩', 
+                    electronics:'⚡', 
+                    textile:'👕', 
+                    hazardous:'☠️' 
+                };
+                return icons[type] || '♻️';
+            }
+
+            function getBinTitle(type) {
+                const titles = {
+                    organic: 'ОРГАНИКА',
+                    plastic: 'ПЛАСТИК',
+                    paper: 'БУМАГА',
+                    glass: 'СТЕКЛО',
+                    metal: 'МЕТАЛЛ',
+                    electronics: 'ЭЛЕКТРОНИКА',
+                    textile: 'ТЕКСТИЛЬ',
+                    hazardous: 'ОПАСНОЕ'
+                };
+                return titles[type] || type.toUpperCase();
+            }
+
+            function loadLevel(levelNum) {
+                const lev = levelData[levelNum];
+                if (!lev) return;
+                binsContainer.innerHTML = '';
+                itemsGrid.innerHTML = '';
+
+                lev.bins.forEach(binType => {
+                    const div = document.createElement('div');
+                    div.className = 'bin';
+                    div.setAttribute('data-type', binType);
+                    div.innerHTML = `<div class="bin-icon">${getBinIcon(binType)}</div><div class="bin-title">${getBinTitle(binType)}</div>`;
+                    binsContainer.appendChild(div);
+                });
+
+                lev.items.forEach(item => {
+                    const it = document.createElement('div');
+                    it.className = 'item';
+                    it.setAttribute('draggable', 'true');
+                    it.setAttribute('data-type', item.type);
+                    it.id = `it-${item.id}`;
+                    it.innerHTML = `<i class="fas ${item.icon}"></i> ${item.name}`;
+                    itemsGrid.appendChild(it);
+                });
+
+                totalItemsCount = lev.items.length;
+                totalSpan.textContent = totalItemsCount;
+                score = 0;
+                scoreSpan.textContent = '0';
+                timeLeft = lev.time || 35;
+                timerSpan.textContent = timeLeft;
+                timerBox.classList.remove('warning');
+                gameMessage.innerHTML = '♻️ Сортируй правильно!';
+                gameActive = true;
+                gameFinished = false;
+
+                attachDragDrop();
+            }
+
+            function attachDragDrop() {
+                const items = document.querySelectorAll('.item');
+                const bins = document.querySelectorAll('.bin');
+                items.forEach(it => {
+                    it.removeEventListener('dragstart', dragStart);
+                    it.removeEventListener('dragend', dragEnd);
+                    it.addEventListener('dragstart', dragStart);
+                    it.addEventListener('dragend', dragEnd);
+                });
+                bins.forEach(b => {
+                    b.removeEventListener('dragover', dragOver);
+                    b.removeEventListener('drop', drop);
+                    b.addEventListener('dragover', dragOver);
+                    b.addEventListener('drop', drop);
+                });
+            }
+
+            function dragStart(e) {
+                if (!gameActive || gameFinished) { e.preventDefault(); return false; }
+                const item = e.target.closest('.item');
+                if (!item || item.classList.contains('hidden') || item.classList.contains('vanish')) { e.preventDefault(); return; }
+                e.dataTransfer.setData('text/plain', item.dataset.type);
+                e.dataTransfer.setData('id', item.id);
+                item.classList.add('dragging');
+            }
+            function dragEnd(e) { const item = e.target.closest('.item'); if(item) item.classList.remove('dragging'); }
+            function dragOver(e) { e.preventDefault(); }
+
+            function drop(e) {
+                e.preventDefault();
+                if (!gameActive || gameFinished) return;
+                const bin = e.target.closest('.bin');
+                if (!bin) return;
+                const binType = bin.dataset.type;
+                const itemType = e.dataTransfer.getData('text/plain');
+                const itemId = e.dataTransfer.getData('id');
+                const draggedItem = document.getElementById(itemId);
+                if (!draggedItem || draggedItem.classList.contains('hidden') || draggedItem.classList.contains('vanish')) return;
+
+                if (binType === itemType) {
+                    score++;
+                    scoreSpan.textContent = score;
+                    draggedItem.classList.add('vanish');
+                    draggedItem.setAttribute('draggable', 'false');
+                    setTimeout(() => { draggedItem.classList.add('hidden'); draggedItem.classList.remove('vanish','dragging'); }, 280);
+                    if (score === totalItemsCount) {
+                        gameFinished = true; gameActive = false; clearTimer();
+                        gameMessage.innerHTML = '🎉 УРОВЕНЬ ПРОЙДЕН! 🎉';
+                        disableDragging();
+                    } else gameMessage.innerHTML = '✅ Правильно!';
+                } else {
+                    bin.style.transform = 'translateX(6px)';
+                    setTimeout(() => bin.style.transform = '', 150);
+                    gameMessage.innerHTML = '❌ Ошибка! Попробуй другой бак';
+                }
+            }
+
+            function disableDragging() { document.querySelectorAll('.item').forEach(it => it.setAttribute('draggable', 'false')); }
+            function clearTimer() { if(timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+
+            function startTimer() {
+                clearTimer();
+                timerInterval = setInterval(() => {
+                    if (!gameActive || gameFinished) return;
+                    timeLeft--;
+                    timerSpan.textContent = timeLeft;
+                    if (timeLeft <= 10) timerBox.classList.add('warning'); else timerBox.classList.remove('warning');
+                    if (timeLeft <= 0) {
+                        clearTimer(); gameActive = false; gameFinished = true;
+                        gameMessage.innerHTML = '⏰ ВРЕМЯ ВЫШЛО! Начни заново'; 
+                        disableDragging();
+                    }
+                }, 1000);
+            }
+
+            function resetCurrentLevel() { clearTimer(); loadLevel(currentLevel); startTimer(); }
+            function goToMenu() { clearTimer(); wrapper.style.display = 'none'; splash.style.display = 'block'; gameActive = false; }
+
+            startBtn.addEventListener('click', () => {
+                currentLevel = selectedLevel;
+                currentLevelSpan.textContent = currentLevel;
+                levelNameDisplay.textContent = `ур.${currentLevel}`;
+                loadLevel(currentLevel);
+                startTimer();
+                splash.style.display = 'none';
+                wrapper.style.display = 'block';
+            });
+
+            restartBtn.addEventListener('click', resetCurrentLevel);
+            backToMenu.addEventListener('click', goToMenu);
+
+            document.addEventListener('dragover', e => e.preventDefault());
+            document.addEventListener('drop', e => e.preventDefault());
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco Sorting Challenge</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    
+    <div id="app">
+        <a href="/site.v2/index.html" class="btn">Назад</a>
+        <div id="splash-screen">
+            <h1>ЭКО-СОРТИРОВКА</h1>
+            <p>Выберите уровень:</p>
+            <ul id="levels-list">
+                <li><button onclick="selectLevel(1)" class="level-button">Уровень 1</button></li>
+                <li><button onclick="selectLevel(2)" class="level-button">Уровень 2</button></li>
+                <!-- Другие уровни -->
+            </ul>
+        </div>
+        
+        <div id="game-screen" style="display:none;">
+            <h2>ЭКО-СОРТИРОВКА Ур.1</h2>
+            
+            <div id="bins">
+                <div class="bin organic"><i class="fa-solid fa-leaf"></i> Органика</div>
+                <div class="bin plastic"><i class="fa-solid fa-tire-rugged"></i> Пластик</div>
+                <div class="bin paper"><i class="fa-solid fa-newspaper"></i> Бумага</div>
+            </div>
+            
+            <div id="items">
+                <div class="item banana" draggable="true"><i class="fa-solid fa-banana"></i> Банан</div>
+                <div class="item plastic-bottle" draggable="true"><i class="fa-solid fa-bottle-water"></i> Пластиковая бутылка</div>
+                <div class="item newspaper" draggable="true"><i class="fa-solid fa-newspaper"></i> Газета</div>
+            </div>
+            
+            <button onclick="returnToMenu()">Вернуться в меню</button>
+        </div>
+    </div>
+</body>
+</html>
